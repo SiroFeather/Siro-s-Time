@@ -71,6 +71,8 @@ public final class TimeStopState {
         snapshots.clear();
         player.displayClientMessage(Component.translatable("message.timestop.activated"), true);
         ModNetworking.broadcastState(true, stopperUUID);
+        // M3（按需求调整）：无敌帧移除窗口从“时停开始”起算，持续 invulnWindowTicks
+        startInvulnWindow(com.timestop.config.TimeStopConfig.invulnWindowTicks());
         // M5：时停开启音效（DIO voice）+ 金色粒子爆发
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
                 ModRegistries.TIMESTOP_ACTIVATE.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
@@ -92,7 +94,6 @@ public final class TimeStopState {
             p.displayClientMessage(Component.translatable("message.timestop.deactivated"), true);
         }
         ModNetworking.broadcastState(false, null);
-        startInvulnWindow(com.timestop.config.TimeStopConfig.invulnWindowTicks());
         // M5：时停解除音效 + 传送门粒子
         if (stopper != null) {
             level.playSound(null, stopper.getX(), stopper.getY(), stopper.getZ(),

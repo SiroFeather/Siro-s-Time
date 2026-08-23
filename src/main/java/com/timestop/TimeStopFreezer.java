@@ -87,7 +87,7 @@ public final class TimeStopFreezer {
         if (server == null) {
             return;
         }
-        // M3 连击窗口：期间每 tick 清零所有可受伤实体的受伤无敌帧
+        // M3 连击窗口（自时停开始起算）：期间每 tick 清零所有可受伤实体的受伤无敌帧
         for (ServerLevel level : server.getAllLevels()) {
             for (Entity entity : level.getAllEntities()) {
                 if (entity instanceof LivingEntity living) {
