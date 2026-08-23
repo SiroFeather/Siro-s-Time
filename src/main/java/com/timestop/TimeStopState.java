@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -70,9 +71,8 @@ public final class TimeStopState {
         stopperUUID = player.getUUID();
         snapshots.clear();
         player.displayClientMessage(Component.translatable("message.timestop.activated"), true);
-        ModNetworking.broadcastState(true, stopperUUID);
-        // M3（按需求调整）：无敌帧移除窗口从“时停开始”起算，持续 invulnWindowTicks
-        startInvulnWindow(com.timestop.config.TimeStopConfig.invulnWindowTicks());
+        ModNetworking.broadcastState(true, stopperUUID, List.copyOf(TimeStopConfig.whitelist()));
+        // M3（按需求调整）：无敌帧移除在“整个时停期间”生效，解除后再延续 0.5 秒
         // M5：时停开启音效（DIO voice）+ 金色粒子爆发
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
                 ModRegistries.TIMESTOP_ACTIVATE.get(), SoundSource.PLAYERS, 1.0F, 1.0F);
@@ -93,7 +93,9 @@ public final class TimeStopState {
         for (ServerPlayer p : level.getServer().getPlayerList().getPlayers()) {
             p.displayClientMessage(Component.translatable("message.timestop.deactivated"), true);
         }
-        ModNetworking.broadcastState(false, null);
+        ModNetworking.broadcastState(false, null, List.copyOf(TimeStopConfig.whitelist()));
+        // M3：时停结束后继续移除无敌帧 0.5 秒（invulnWindowTicks）
+        startInvulnWindow(TimeStopConfig.invulnWindowTicks());
         // M5：时停解除音效 + 传送门粒子
         if (stopper != null) {
             level.playSound(null, stopper.getX(), stopper.getY(), stopper.getZ(),

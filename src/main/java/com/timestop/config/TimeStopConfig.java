@@ -33,8 +33,8 @@ public class TimeStopConfig {
                         obj -> obj instanceof String);
 
         VALUES.invulnWindowTicks = builder
-                .comment("时停开始后移除默认受伤无敌帧的持续时长（tick，20=1 秒）。默认 10 = 0.5 秒。",
-                        "窗口从“时停开始”起算，期间连续攻击每次都能造成满额伤害。")
+                .comment("无敌帧移除窗口：整个时停期间生效，并在时停结束后再延续该时长（tick，20=1 秒）。",
+                        "默认 10 = 0.5 秒。窗口内连续攻击每次都能造成满额伤害。")
                 .defineInRange("invulnWindowTicks", 10, 0, 200);
 
         VALUES.maidFollowDuringTimeStop = builder

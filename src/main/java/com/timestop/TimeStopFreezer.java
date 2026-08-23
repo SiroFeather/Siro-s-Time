@@ -78,16 +78,19 @@ public final class TimeStopFreezer {
         if (event.phase != TickEvent.Phase.END) {
             return;
         }
-        if (TimeStopState.getInvulnWindowTicks() <= 0) {
+        // M3（按需求调整）：无敌帧移除窗口 = 整个时停期间 + 时停结束后 invulnWindowTicks(0.5s)
+        boolean active = TimeStopState.isActive();
+        if (!active && TimeStopState.getInvulnWindowTicks() <= 0) {
             return;
         }
-        TimeStopState.tickInvulnWindow();
+        if (!active) {
+            TimeStopState.tickInvulnWindow(); // 仅在收尾阶段递减
+        }
 
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) {
             return;
         }
-        // M3 连击窗口（自时停开始起算）：期间每 tick 清零所有可受伤实体的受伤无敌帧
         for (ServerLevel level : server.getAllLevels()) {
             for (Entity entity : level.getAllEntities()) {
                 if (entity instanceof LivingEntity living) {

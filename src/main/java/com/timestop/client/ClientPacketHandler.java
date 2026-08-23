@@ -10,6 +10,6 @@ public final class ClientPacketHandler {
     }
 
     public static void handleState(TimeStopStatePacket packet) {
-        ClientTimeStopState.set(packet.isActive(), packet.getStopperUUID());
+        ClientTimeStopState.set(packet.isActive(), packet.getStopperUUID(), packet.getWhitelist());
     }
 }

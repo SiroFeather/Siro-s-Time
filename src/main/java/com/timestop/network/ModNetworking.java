@@ -6,12 +6,13 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
- * 模组网络通道（M2）。
+ * 模组网络通道（M2/M5）。
  * <p>
- * 用于把时停状态同步到客户端，驱动客户端动画冻结与输入锁定。
+ * 把时停状态与白名单同步到客户端，驱动客户端动画冻结与输入锁定。
  */
 public final class ModNetworking {
     private static final String PROTOCOL_VERSION = "1";
@@ -32,8 +33,8 @@ public final class ModNetworking {
                 TimeStopStatePacket::handle);
     }
 
-    /** 向服务器上所有玩家广播时停状态（须在 Server 线程调用）。 */
-    public static void broadcastState(boolean active, UUID stopperUUID) {
-        CHANNEL.send(PacketDistributor.ALL.noArg(), new TimeStopStatePacket(active, stopperUUID));
+    /** 向服务器上所有玩家广播时停状态与白名单（须在 Server 线程调用）。 */
+    public static void broadcastState(boolean active, UUID stopperUUID, List<String> whitelist) {
+        CHANNEL.send(PacketDistributor.ALL.noArg(), new TimeStopStatePacket(active, stopperUUID, whitelist));
     }
 }

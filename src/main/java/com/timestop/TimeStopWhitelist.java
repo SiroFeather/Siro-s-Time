@@ -11,10 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * 时停白名单缓存（M4：支持 modid:* 通配）。
- * <p>
- * 把配置里的实体注册名解析为 {@link EntityType} 集合与通配命名空间集合并缓存，
- * 仅在配置列表内容变化时重建，避免每 tick 反复解析字符串。
+ * 时停白名单解析与判定（M4 支持 modid:* 通配；M5 客户端通过状态包复用同一套解析）。
  * <p>
  * 配置示例：
  * <ul>
@@ -25,33 +22,37 @@ import java.util.Set;
 @SuppressWarnings("deprecation") // 1.20.1 标准注册表访问，Mojang 建议用 RegistryAccess
 public final class TimeStopWhitelist {
     private static List<? extends String> cachedConfig = List.of();
-    private static Set<EntityType<?>> cachedTypes = Set.of();
-    private static Set<String> cachedWildcardNamespaces = Set.of();
+    private static Whitelist cachedWhitelist = Whitelist.EMPTY;
 
     private TimeStopWhitelist() {
     }
 
+    /** 服务端/本机配置判定（带缓存）。 */
     public static boolean contains(EntityType<?> type) {
         List<? extends String> config = TimeStopConfig.whitelist();
         if (!Objects.equals(config, cachedConfig)) {
             cachedConfig = List.copyOf(config);
-            rebuild(config);
+            cachedWhitelist = build(cachedConfig);
         }
-        if (cachedTypes.contains(type)) {
+        return contains(type, cachedWhitelist);
+    }
+
+    /** 使用给定的白名单集合判定（客户端用状态包同步的列表）。 */
+    public static boolean contains(EntityType<?> type, Whitelist whitelist) {
+        if (whitelist.exact().contains(type)) {
             return true;
         }
-        if (!cachedWildcardNamespaces.isEmpty()) {
+        if (!whitelist.namespaces().isEmpty()) {
             ResourceLocation key = BuiltInRegistries.ENTITY_TYPE.getKey(type);
-            if (key != null && cachedWildcardNamespaces.contains(key.getNamespace())) {
-                return true;
-            }
+            return key != null && whitelist.namespaces().contains(key.getNamespace());
         }
         return false;
     }
 
-    private static void rebuild(List<? extends String> ids) {
+    /** 把配置/包里的字符串列表解析为 {@link Whitelist}。 */
+    public static Whitelist build(List<? extends String> ids) {
         Set<EntityType<?>> exact = new HashSet<>();
-        Set<String> wildcards = new HashSet<>();
+        Set<String> namespaces = new HashSet<>();
         for (String id : ids) {
             if (id == null || id.isBlank()) {
                 continue;
@@ -59,7 +60,7 @@ public final class TimeStopWhitelist {
             if (id.endsWith(":*")) {
                 String namespace = id.substring(0, id.length() - 2);
                 if (ResourceLocation.isValidNamespace(namespace)) {
-                    wildcards.add(namespace);
+                    namespaces.add(namespace);
                 }
                 continue;
             }
@@ -68,7 +69,11 @@ public final class TimeStopWhitelist {
                 BuiltInRegistries.ENTITY_TYPE.getOptional(rl).ifPresent(exact::add);
             }
         }
-        cachedTypes = Set.copyOf(exact);
-        cachedWildcardNamespaces = Set.copyOf(wildcards);
+        return new Whitelist(Set.copyOf(exact), Set.copyOf(namespaces));
+    }
+
+    /** 精确实体集合 + 通配命名空间集合。 */
+    public record Whitelist(Set<EntityType<?>> exact, Set<String> namespaces) {
+        public static final Whitelist EMPTY = new Whitelist(Set.of(), Set.of());
     }
 }
