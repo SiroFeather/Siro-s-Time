@@ -49,6 +49,9 @@ public final class TimeStopFreezer {
                     continue;
                 }
 
+                // TACZ/投掷物适配：先记录原始速度（解除时恢复，子弹续飞）
+                TimeStopState.captureMotion(entity);
+
                 // 1) 清空遗留速度（防止解除瞬间残留速度造成位移）
                 entity.setDeltaMovement(Vec3.ZERO);
 

@@ -42,6 +42,11 @@ public class TimeStopConfig {
                         "女仆实体在时停中都保持正常 AI（可继续跟随主人）。默认 false。")
                 .define("maidFollowDuringTimeStop", false);
 
+        VALUES.resumeProjectilesOnRelease = builder
+                .comment("时停解除时恢复被冻结实体的原始速度（子弹/箭矢/掉落物等继续飞行）。",
+                        "用于适配 TACZ 等枪械模组：时停期间开枪，子弹定在空中，解除后续飞并造成伤害。默认 true。")
+                .define("resumeProjectilesOnRelease", true);
+
         builder.pop();
         SERVER_SPEC = builder.build();
     }
@@ -61,9 +66,14 @@ public class TimeStopConfig {
         return VALUES.maidFollowDuringTimeStop.get();
     }
 
+    public static boolean resumeProjectilesOnRelease() {
+        return VALUES.resumeProjectilesOnRelease.get();
+    }
+
     private static final class ConfigValues {
         private ForgeConfigSpec.ConfigValue<List<? extends String>> whitelist;
         private ForgeConfigSpec.IntValue invulnWindowTicks;
         private ForgeConfigSpec.BooleanValue maidFollowDuringTimeStop;
+        private ForgeConfigSpec.BooleanValue resumeProjectilesOnRelease;
     }
 }
