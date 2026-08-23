@@ -52,6 +52,14 @@ public final class TimeStopFreezer {
                 // TACZ/投掷物适配：先记录原始速度（解除时恢复，子弹续飞）
                 TimeStopState.captureMotion(entity);
 
+                // 生存时间暂停：记录并钉住 tickCount（主循环先 ++ 再 tick，
+                // 在 START 把 tickCount 复位到冻结值，使基于 tickCount 的自动消失检查永不触发）
+                TimeStopState.captureTickCount(entity);
+                Integer savedTick = TimeStopState.getSavedTickCount(entity);
+                if (savedTick != null) {
+                    entity.tickCount = savedTick;
+                }
+
                 // 1) 清空遗留速度（防止解除瞬间残留速度造成位移）
                 entity.setDeltaMovement(Vec3.ZERO);
 

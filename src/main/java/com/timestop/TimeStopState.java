@@ -34,6 +34,8 @@ public final class TimeStopState {
     private static final Map<UUID, FrozenSnapshot> snapshots = new HashMap<>();
     /** 冻结时记录的实体原始速度（用于时停解除后恢复，使子弹/箭矢等续飞）。 */
     private static final Map<UUID, Vec3> savedMotions = new HashMap<>();
+    /** 冻结时记录的实体 tickCount（年龄），冻结期间钉住以防生存时间/自动消失推进。 */
+    private static final Map<UUID, Integer> savedTickCounts = new HashMap<>();
 
     /// 解除后移除受伤无敌帧的剩余窗口（tick）
     private static int invulnWindowTicks = 0;
@@ -75,6 +77,7 @@ public final class TimeStopState {
         stopperUUID = player.getUUID();
         snapshots.clear();
         savedMotions.clear();
+        savedTickCounts.clear();
         player.displayClientMessage(Component.translatable("message.timestop.activated"), true);
         ModNetworking.broadcastState(true, stopperUUID, List.copyOf(TimeStopConfig.whitelist()));
         // M3（按需求调整）：无敌帧移除在“整个时停期间”生效，解除后再延续 0.5 秒
@@ -100,6 +103,7 @@ public final class TimeStopState {
             restoreMotions(level.getServer());
         }
         savedMotions.clear();
+        savedTickCounts.clear();
         for (ServerPlayer p : level.getServer().getPlayerList().getPlayers()) {
             p.displayClientMessage(Component.translatable("message.timestop.deactivated"), true);
         }
@@ -156,6 +160,17 @@ public final class TimeStopState {
         savedMotions.putIfAbsent(entity.getUUID(), entity.getDeltaMovement());
     }
 
+    /** 记录实体被冻结时的 tickCount（年龄），用于冻结期间钉住以暂停生存时间。 */
+    public static void captureTickCount(Entity entity) {
+        savedTickCounts.putIfAbsent(entity.getUUID(), entity.tickCount);
+    }
+
+    /** 返回实体被冻结时记录的 tickCount；未记录返回 null。 */
+    @org.jetbrains.annotations.Nullable
+    public static Integer getSavedTickCount(Entity entity) {
+        return savedTickCounts.get(entity.getUUID());
+    }
+
     /** 时停解除时，把记录的速度恢复到对应实体上（子弹/箭矢/掉落物续飞）。 */
     public static void restoreMotions(MinecraftServer server) {
         if (savedMotions.isEmpty()) {
@@ -175,6 +190,7 @@ public final class TimeStopState {
     public static void clearSnapshots() {
         snapshots.clear();
         savedMotions.clear();
+        savedTickCounts.clear();
     }
 
     public static void startInvulnWindow(int ticks) {
