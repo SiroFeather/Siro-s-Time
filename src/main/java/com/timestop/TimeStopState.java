@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -39,6 +40,9 @@ public final class TimeStopState {
 
     /// 解除后移除受伤无敌帧的剩余窗口（tick）
     private static int invulnWindowTicks = 0;
+    /** FTB Teams：与时停者同队伍的成员 UUID（null 表示未启用/未安装/不在队伍）。 */
+    @org.jetbrains.annotations.Nullable
+    private static Set<UUID> ftbTeamMembers = null;
 
     private TimeStopState() {
     }
@@ -78,8 +82,11 @@ public final class TimeStopState {
         snapshots.clear();
         savedMotions.clear();
         savedTickCounts.clear();
+        // FTB Teams：记录同队成员，时停中豁免
+        ftbTeamMembers = TimeStopConfig.ftbTeamFreezeExemption()
+                ? TimeStopCompat.getFtbTeamMembers(player) : null;
         player.displayClientMessage(Component.translatable("message.timestop.activated"), true);
-        ModNetworking.broadcastState(true, stopperUUID, List.copyOf(TimeStopConfig.whitelist()));
+        ModNetworking.broadcastState(true, stopperUUID, List.copyOf(TimeStopConfig.whitelist()), ftbExemptList());
         // M3（按需求调整）：无敌帧移除在“整个时停期间”生效，解除后再延续 0.5 秒
         // M5：时停开启音效（DIO voice）+ 金色粒子爆发
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
@@ -97,6 +104,7 @@ public final class TimeStopState {
         }
         active = false;
         stopperUUID = null;
+        ftbTeamMembers = null;
         snapshots.clear();
         // TACZ/投掷物适配：时停解除时恢复被冻结实体的速度（子弹续飞）
         if (TimeStopConfig.resumeProjectilesOnRelease()) {
@@ -107,7 +115,7 @@ public final class TimeStopState {
         for (ServerPlayer p : level.getServer().getPlayerList().getPlayers()) {
             p.displayClientMessage(Component.translatable("message.timestop.deactivated"), true);
         }
-        ModNetworking.broadcastState(false, null, List.copyOf(TimeStopConfig.whitelist()));
+        ModNetworking.broadcastState(false, null, List.copyOf(TimeStopConfig.whitelist()), List.of());
         // M3：时停结束后继续移除无敌帧 0.5 秒（invulnWindowTicks）
         startInvulnWindow(TimeStopConfig.invulnWindowTicks());
         // M5：时停解除音效 + 传送门粒子
@@ -142,6 +150,13 @@ public final class TimeStopState {
         // M4：女仆跟随模式——开启且已安装车万女仆时，女仆保持正常 AI（可跟随主人）
         if (TimeStopConfig.maidFollowDuringTimeStop() && TimeStopCompat.isMaid(entity)) {
             return false;
+        }
+        // FTB Teams：豁免与时停者同队伍的玩家及其仆从/被驯服实体
+        if (ftbTeamMembers != null) {
+            UUID owner = TimeStopCompat.resolveOwner(entity);
+            if (owner != null && ftbTeamMembers.contains(owner)) {
+                return false;
+            }
         }
         if (TimeStopWhitelist.contains(entity.getType())) {
             return false;
@@ -191,6 +206,11 @@ public final class TimeStopState {
         snapshots.clear();
         savedMotions.clear();
         savedTickCounts.clear();
+    }
+
+    /** FTB 同队豁免玩家 UUID 列表（广播给客户端用）。 */
+    public static List<UUID> ftbExemptList() {
+        return ftbTeamMembers == null ? List.of() : List.copyOf(ftbTeamMembers);
     }
 
     public static void startInvulnWindow(int ticks) {

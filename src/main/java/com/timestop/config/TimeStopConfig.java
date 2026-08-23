@@ -47,6 +47,11 @@ public class TimeStopConfig {
                         "用于适配 TACZ 等枪械模组：时停期间开枪，子弹定在空中，解除后续飞并造成伤害。默认 true。")
                 .define("resumeProjectilesOnRelease", true);
 
+        VALUES.ftbTeamFreezeExemption = builder
+                .comment("FTB Teams 兼容：时停时自动豁免与时停者同队伍的玩家及其仆从/被驯服实体。",
+                        "需安装 FTB Teams；默认 true。")
+                .define("ftbTeamFreezeExemption", true);
+
         builder.pop();
         SERVER_SPEC = builder.build();
     }
@@ -70,10 +75,15 @@ public class TimeStopConfig {
         return VALUES.resumeProjectilesOnRelease.get();
     }
 
+    public static boolean ftbTeamFreezeExemption() {
+        return VALUES.ftbTeamFreezeExemption.get();
+    }
+
     private static final class ConfigValues {
         private ForgeConfigSpec.ConfigValue<List<? extends String>> whitelist;
         private ForgeConfigSpec.IntValue invulnWindowTicks;
         private ForgeConfigSpec.BooleanValue maidFollowDuringTimeStop;
         private ForgeConfigSpec.BooleanValue resumeProjectilesOnRelease;
+        private ForgeConfigSpec.BooleanValue ftbTeamFreezeExemption;
     }
 }

@@ -7,6 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.server.ServerLifecycleHooks;
@@ -82,6 +83,19 @@ public final class TimeStopFreezer {
         if (TimeStopState.shouldFreeze(event.getEntity())) {
             event.setCanceled(true);
         }
+    }
+
+    @SubscribeEvent
+    public static void onLivingAttack(LivingAttackEvent event) {
+        // SlashBlade 等连击修复：该事件在 hurt() 最开头、无敌帧检查之前触发。
+        // 时停期间清零 invulnerableTime，使同一 tick 内的多段命中每次都走满额伤害分支
+        // （1.20.1 中 invulnerableTime>10 且伤害<=lastHurt 会直接 return false 不造成伤害）。
+        if (!TimeStopState.isActive() && TimeStopState.getInvulnWindowTicks() <= 0) {
+            return;
+        }
+        LivingEntity victim = event.getEntity();
+        victim.invulnerableTime = 0;
+        victim.hurtTime = 0;
     }
 
     @SubscribeEvent

@@ -59,6 +59,9 @@ public final class ClientEntityFreezer {
             if (entity == Minecraft.getInstance().player) {
                 continue; // 防御性：本地玩家永不被冻结
             }
+            if (ClientTimeStopState.isExemptEntity(entity)) {
+                continue; // FTB 同队玩家及其仆从不冻结
+            }
             if (ClientTimeStopState.isWhitelisted(entity.getType())) {
                 continue;
             }

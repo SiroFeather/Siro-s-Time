@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * 模组网络通道（M2/M5）。
+ * 模组网络通道（M2/M5/FTB 适配）。
  * <p>
- * 把时停状态与白名单同步到客户端，驱动客户端动画冻结与输入锁定。
+ * 把时停状态、白名单与 FTB 同队豁免玩家同步到客户端。
  */
 public final class ModNetworking {
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
     private static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(TimeStopMod.MODID, "main"),
             () -> PROTOCOL_VERSION,
@@ -33,8 +33,8 @@ public final class ModNetworking {
                 TimeStopStatePacket::handle);
     }
 
-    /** 向服务器上所有玩家广播时停状态与白名单（须在 Server 线程调用）。 */
-    public static void broadcastState(boolean active, UUID stopperUUID, List<String> whitelist) {
-        CHANNEL.send(PacketDistributor.ALL.noArg(), new TimeStopStatePacket(active, stopperUUID, whitelist));
+    /** 向服务器上所有玩家广播时停状态、白名单与 FTB 豁免玩家（须在 Server 线程调用）。 */
+    public static void broadcastState(boolean active, UUID stopperUUID, List<String> whitelist, List<UUID> exemptPlayers) {
+        CHANNEL.send(PacketDistributor.ALL.noArg(), new TimeStopStatePacket(active, stopperUUID, whitelist, exemptPlayers));
     }
 }

@@ -31,8 +31,8 @@ public final class ClientInputBlocker {
         if (local == null || event.getEntity() != local) {
             return;
         }
-        if (ClientTimeStopState.isStopper(local)) {
-            return; // 停时者可自由移动
+        if (ClientTimeStopState.isStopper(local) || ClientTimeStopState.isExemptPlayer(local)) {
+            return; // 停时者 / FTB 同队玩家可自由移动
         }
         Input input = event.getInput();
         input.forwardImpulse = 0.0F;

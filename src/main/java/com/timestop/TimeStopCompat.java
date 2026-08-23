@@ -1,9 +1,20 @@
 package com.timestop;
 
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.OwnableEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fml.ModList;
+
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * 外部模组软依赖适配。
@@ -24,9 +35,12 @@ public final class TimeStopCompat {
     public static final String MAID_ENTITY_PATH = "maid";
     /** TACZ 模组 ID（软依赖）。 */
     public static final String TACZ_MOD_ID = "tacz";
+    /** FTB Teams 模组 ID（软依赖）。 */
+    public static final String FTB_TEAMS_MOD_ID = "ftbteams";
 
     private static Boolean maidModLoaded;
     private static Boolean taczLoaded;
+    private static Boolean ftbTeamsLoaded;
 
     private TimeStopCompat() {
     }
@@ -67,5 +81,85 @@ public final class TimeStopCompat {
         }
         ResourceLocation key = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         return key != null && key.getNamespace().equals(TACZ_MOD_ID);
+    }
+
+    /** FTB Teams 是否已安装（结果缓存）。 */
+    public static boolean isFtbTeamsLoaded() {
+        if (ftbTeamsLoaded == null) {
+            ModList modList = ModList.get();
+            ftbTeamsLoaded = modList != null && modList.isLoaded(FTB_TEAMS_MOD_ID);
+        }
+        return ftbTeamsLoaded;
+    }
+
+    /**
+     * 通过反射获取某玩家所属 FTB 队伍的全部成员 UUID；未安装/不在队伍时返回 null。
+     * 不直接引用 FTB Teams 类，避免硬依赖。
+     */
+    @SuppressWarnings("unchecked")
+    @javax.annotation.Nullable
+    public static Set<UUID> getFtbTeamMembers(ServerPlayer player) {
+        if (!isFtbTeamsLoaded()) {
+            return null;
+        }
+        try {
+            Class<?> apiClass = Class.forName("dev.ftb.mods.ftbteams.api.FTBTeamsAPI");
+            Object api = apiClass.getMethod("api").invoke(null);
+            Object manager = api.getClass().getMethod("getManager").invoke(api);
+
+            Optional<?> teamOpt;
+            try {
+                Method byUuid = manager.getClass().getMethod("getPlayerTeamFor", UUID.class);
+                teamOpt = (Optional<?>) byUuid.invoke(manager, player.getUUID());
+            } catch (NoSuchMethodException e) {
+                Method byPlayer = manager.getClass().getMethod("getPlayerTeamFor", ServerPlayer.class);
+                teamOpt = (Optional<?>) byPlayer.invoke(manager, player);
+            }
+            if (teamOpt == null || !teamOpt.isPresent()) {
+                return null;
+            }
+            Object team = teamOpt.get();
+            Object members = team.getClass().getMethod("getMembers").invoke(team);
+            return new HashSet<>((Set<UUID>) members);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 解析实体的"归属者"UUID：玩家返回自身；被驯服/可拥有实体返回主人；
+     * 其余尝试读取常见仆从 NBT 字段。找不到返回 null。
+     */
+    @javax.annotation.Nullable
+    public static UUID resolveOwner(Entity entity) {
+        if (entity instanceof Player player) {
+            return player.getUUID();
+        }
+        if (entity instanceof OwnableEntity ownable) {
+            UUID owner = ownable.getOwnerUUID();
+            if (owner != null) {
+                return owner;
+            }
+        }
+        if (entity.getPersistentData().isEmpty()) {
+            return null;
+        }
+        CompoundTag tag = entity.getPersistentData();
+        for (String key : new String[]{"OwnerUUID", "Owner", "owner", "OwnerID", "Summoner", "BoundPlayer"}) {
+            if (tag.contains(key, Tag.TAG_STRING)) {
+                try {
+                    return UUID.fromString(tag.getString(key));
+                } catch (IllegalArgumentException ignored) {
+                }
+            } else if (tag.contains(key, Tag.TAG_INT_ARRAY)) {
+                int[] arr = tag.getIntArray(key);
+                if (arr.length == 4) {
+                    long msb = ((long) arr[0] << 32) | (arr[1] & 0xFFFFFFFFL);
+                    long lsb = ((long) arr[2] << 32) | (arr[3] & 0xFFFFFFFFL);
+                    return new UUID(msb, lsb);
+                }
+            }
+        }
+        return null;
     }
 }
