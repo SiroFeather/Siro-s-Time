@@ -40,6 +40,7 @@ public class TimeStopMod {
         // M2：注册网络通道（时停状态同步到客户端）
         ModNetworking.register();
 
+
         LOGGER.info("[{}] 初始化完成（M5：打磨与发布准备）", MODID);
     }
 }
