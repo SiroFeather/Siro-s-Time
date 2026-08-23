@@ -1,5 +1,6 @@
 package com.timestop;
 
+import com.timestop.item.TimeBottleItem;
 import com.timestop.item.TimeStopItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -27,6 +28,10 @@ public class ModRegistries {
     public static final RegistryObject<Item> TIME_STOP_ITEM =
             ITEMS.register("time_stop_item", () -> new TimeStopItem(new Item.Properties().stacksTo(1)));
 
+    /** 时间瓶：无效果，仅作为时停怀表的合成材料。 */
+    public static final RegistryObject<Item> TIME_BOTTLE =
+            ITEMS.register("time_bottle", () -> new TimeBottleItem(new Item.Properties()));
+
     /** 时停开启音效（DIO voice）。 */
     public static final RegistryObject<SoundEvent> TIMESTOP_ACTIVATE = SOUND_EVENTS.register("timestop.activate",
             () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(TimeStopMod.MODID, "timestop.activate")));
@@ -40,7 +45,10 @@ public class ModRegistries {
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.timestop"))
                     .icon(() -> new ItemStack(TIME_STOP_ITEM.get()))
-                    .displayItems((params, output) -> output.accept(TIME_STOP_ITEM.get()))
+                    .displayItems((params, output) -> {
+                        output.accept(TIME_STOP_ITEM.get());
+                        output.accept(TIME_BOTTLE.get());
+                    })
                     .build());
 
     private ModRegistries() {

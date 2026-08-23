@@ -1,5 +1,8 @@
 {
   "itemGroup.timestop": "时停",
+  "item.timestop.time_bottle": "时间瓶",
+  "message.timestop.time_bottle_progress": "时间瓶充能中：%s/10 分钟",
+  "message.timestop.time_bottle_complete": "时间瓶充能完成！",
   "item.timestop.time_stop_item": "时停怀表",
   "item.timestop.time_stop_item.tooltip": "右键时停，再次右键解除。",
   "item.timestop.time_stop_item.status_active": "时停：进行中",

@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " g ",
+    "gBg",
+    " g "
+  ],
+  "key": {
+    "g": {
+      "item": "minecraft:gold_ingot"
+    },
+    "B": {
+      "item": "timestop:time_bottle"
+    }
+  },
+  "result": {
+    "item": "timestop:time_stop_item",
+    "count": 1
+  }
+}

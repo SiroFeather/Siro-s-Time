@@ -2,6 +2,7 @@ package com.timestop;
 
 import com.mojang.logging.LogUtils;
 import com.timestop.config.TimeStopConfig;
+import com.timestop.item.TimeBottleHandler;
 import com.timestop.network.ModNetworking;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -37,9 +38,12 @@ public class TimeStopMod {
         // M1：注册时停冻结逻辑到 Forge 事件总线
         MinecraftForge.EVENT_BUS.register(TimeStopFreezer.class);
 
+        // 1.3.0：注册时间瓶充能逻辑
+        MinecraftForge.EVENT_BUS.register(TimeBottleHandler.class);
+
         // M2：注册网络通道（时停状态同步到客户端）
         ModNetworking.register();
 
-        LOGGER.info("[{}] 初始化完成（M5：打磨与发布准备）", MODID);
+        LOGGER.info("[{}] 初始化完成（1.3.0）", MODID);
     }
 }

@@ -1,5 +1,8 @@
 {
   "itemGroup.timestop": "Time Stop",
+  "item.timestop.time_bottle": "Time Bottle",
+  "message.timestop.time_bottle_progress": "Time Bottle filling: %s/10 min",
+  "message.timestop.time_bottle_complete": "Time Bottle filled!",
   "item.timestop.time_stop_item": "Time Stop Watch",
   "item.timestop.time_stop_item.tooltip": "Right-click to stop time. Right-click again to release.",
   "item.timestop.time_stop_item.status_active": "Time stop: ACTIVE",
