@@ -51,11 +51,20 @@ public final class ClientTimeStopState {
 
     /** 实体是否属于 FTB 同队豁免玩家（玩家自身或某人的仆从/被驯服实体）。 */
     public static boolean isExemptEntity(Entity entity) {
-        if (exemptPlayers.isEmpty()) {
-            return false;
+        if (!exemptPlayers.isEmpty()) {
+            UUID owner = TimeStopCompat.resolveOwner(entity);
+            if (owner != null && exemptPlayers.contains(owner)) {
+                return true;
+            }
         }
-        UUID owner = TimeStopCompat.resolveOwner(entity);
-        return owner != null && exemptPlayers.contains(owner);
+        // SlashBlade：豁免本地停时者（或同队玩家）发射的召唤剑投射物，使其在客户端正常飞行
+        if (TimeStopCompat.isSlashBladeProjectile(entity)) {
+            UUID owner = TimeStopCompat.getProjectileOwnerUuid(entity);
+            if (owner != null && (owner.equals(stopperUUID) || exemptPlayers.contains(owner))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** 实体是否在（服务端同步来的）白名单内。 */

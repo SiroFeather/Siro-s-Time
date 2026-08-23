@@ -158,6 +158,15 @@ public final class TimeStopState {
                 return false;
             }
         }
+        // SlashBlade 适配：豁免停时者（或同队玩家）发射的召唤剑/斩击投射物——
+        // 其命中依赖 deltaMovement 射线长度，冻结清零速度会导致射线零长度而无法造成伤害
+        if (TimeStopCompat.isSlashBladeProjectile(entity)) {
+            UUID owner = TimeStopCompat.getProjectileOwnerUuid(entity);
+            if (owner != null && (owner.equals(stopperUUID)
+                    || (ftbTeamMembers != null && ftbTeamMembers.contains(owner)))) {
+                return false;
+            }
+        }
         if (TimeStopWhitelist.contains(entity.getType())) {
             return false;
         }

@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraftforge.fml.ModList;
 
 import java.lang.reflect.Method;
@@ -37,10 +38,13 @@ public final class TimeStopCompat {
     public static final String TACZ_MOD_ID = "tacz";
     /** FTB Teams 模组 ID（软依赖）。 */
     public static final String FTB_TEAMS_MOD_ID = "ftbteams";
+    /** SlashBlade Resharped 模组 ID（软依赖）。 */
+    public static final String SLASHBLADE_MOD_ID = "slashblade";
 
     private static Boolean maidModLoaded;
     private static Boolean taczLoaded;
     private static Boolean ftbTeamsLoaded;
+    private static Boolean slashBladeLoaded;
 
     private TimeStopCompat() {
     }
@@ -159,6 +163,40 @@ public final class TimeStopCompat {
                     return new UUID(msb, lsb);
                 }
             }
+        }
+        return null;
+    }
+
+    /** SlashBlade Resharped 是否已安装（结果缓存）。 */
+    public static boolean isSlashBladeLoaded() {
+        if (slashBladeLoaded == null) {
+            ModList modList = ModList.get();
+            slashBladeLoaded = modList != null && modList.isLoaded(SLASHBLADE_MOD_ID);
+        }
+        return slashBladeLoaded;
+    }
+
+    /**
+     * 判断是否为 SlashBlade 的投射类伤害实体（召唤剑/居合斩/斩击效果）。
+     * 这些实体用 getDeltaMovement() 作为命中射线长度，冻结清零速度会导致射线零长度而无法命中。
+     */
+    public static boolean isSlashBladeProjectile(Entity entity) {
+        if (!isSlashBladeLoaded()) {
+            return false;
+        }
+        if (!(entity instanceof Projectile)) {
+            return false;
+        }
+        ResourceLocation key = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+        return key != null && key.getNamespace().equals(SLASHBLADE_MOD_ID);
+    }
+
+    /** 获取投射物的归属者 UUID（Projectile.getOwner()）。 */
+    @javax.annotation.Nullable
+    public static UUID getProjectileOwnerUuid(Entity entity) {
+        if (entity instanceof Projectile projectile) {
+            Entity owner = projectile.getOwner();
+            return owner != null ? owner.getUUID() : null;
         }
         return null;
     }
