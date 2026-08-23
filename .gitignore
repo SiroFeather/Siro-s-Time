@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+gradle-app.setting
+
+# 数据生成器输出（不作为源码提交）
+src/generated/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+eclipse/
+bin/
+.factorypath
+
+# ForgeGradle 运行目录与日志
+run/
+logs/
+crash-reports/
+
+# 其它
+*.log

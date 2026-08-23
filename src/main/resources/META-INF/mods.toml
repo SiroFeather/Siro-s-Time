@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="timestop"
+version="1.0.0"
+displayName="Time Stop"
+authors="WorkBuddy"
+description='''A time-stop mod for Minecraft 1.20.1 (Forge).
+Right-click the Time Stop item to stop time for all entities except you; right-click again to release.
+M0: project skeleton (item + creative tab + config framework).'''
+
+[[dependencies.timestop]]
+modId="forge"
+mandatory=true
+versionRange="[47,)"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.timestop]]
+modId="minecraft"
+mandatory=true
+versionRange="[1.20.1,1.21)"
+ordering="NONE"
+side="BOTH"

@@ -1,0 +1,12 @@
+{
+  "itemGroup.timestop": "时停",
+  "item.timestop.time_stop_item": "时停怀表",
+  "item.timestop.time_stop_item.tooltip": "右键时停，再次右键解除。",
+  "item.timestop.time_stop_item.status_active": "时停：进行中",
+  "item.timestop.time_stop_item.status_ready": "时停：已就绪",
+  "message.timestop.activated": "时停开始！",
+  "message.timestop.deactivated": "时停解除！",
+  "message.timestop.denied": "时停已在进行中！",
+  "subtitles.timestop.activate": "时停开始",
+  "subtitles.timestop.deactivate": "时停解除"
+}

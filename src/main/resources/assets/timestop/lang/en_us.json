@@ -1,0 +1,12 @@
+{
+  "itemGroup.timestop": "Time Stop",
+  "item.timestop.time_stop_item": "Time Stop Watch",
+  "item.timestop.time_stop_item.tooltip": "Right-click to stop time. Right-click again to release.",
+  "item.timestop.time_stop_item.status_active": "Time stop: ACTIVE",
+  "item.timestop.time_stop_item.status_ready": "Time stop: ready",
+  "message.timestop.activated": "Time has stopped!",
+  "message.timestop.deactivated": "Time resumed.",
+  "message.timestop.denied": "Time stop is already active!",
+  "subtitles.timestop.activate": "Time stops",
+  "subtitles.timestop.deactivate": "Time resumes"
+}

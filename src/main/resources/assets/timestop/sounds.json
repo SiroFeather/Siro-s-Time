@@ -1,0 +1,10 @@
+{
+  "timestop.activate": {
+    "subtitle": "subtitles.timestop.activate",
+    "sounds": [ "timestop:timestop_activate" ]
+  },
+  "timestop.deactivate": {
+    "subtitle": "subtitles.timestop.deactivate",
+    "sounds": [ "timestop:timestop_deactivate" ]
+  }
+}
