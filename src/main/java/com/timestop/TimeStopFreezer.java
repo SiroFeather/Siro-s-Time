@@ -8,6 +8,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.server.ServerLifecycleHooks;
@@ -68,6 +69,9 @@ public final class TimeStopFreezer {
                     if (living instanceof Mob mob) {
                         mob.setJumping(false);
                     }
+                    // 更强健：冻结生物每 tick 起点清零无敌帧/受击帧，确保 SlashBlade 等连击每段都命中
+                    living.invulnerableTime = 0;
+                    living.hurtTime = 0;
                     // 生物实体：tick 已被取消，位置天然静止，不做每 tick 复位（避免抽动）
                 } else {
                     // 非生物实体（箭/船/矿车/掉落物/经验球…）：快照复位兜底
@@ -90,6 +94,18 @@ public final class TimeStopFreezer {
         // SlashBlade 等连击修复：该事件在 hurt() 最开头、无敌帧检查之前触发。
         // 时停期间清零 invulnerableTime，使同一 tick 内的多段命中每次都走满额伤害分支
         // （1.20.1 中 invulnerableTime>10 且伤害<=lastHurt 会直接 return false 不造成伤害）。
+        if (!TimeStopState.isActive() && TimeStopState.getInvulnWindowTicks() <= 0) {
+            return;
+        }
+        LivingEntity victim = event.getEntity();
+        victim.invulnerableTime = 0;
+        victim.hurtTime = 0;
+    }
+
+    @SubscribeEvent
+    public static void onLivingHurt(LivingHurtEvent event) {
+        // 兜底：即使命中通过（已越过无敌帧检查），也在结算前再次清零，
+        // 确保同一 tick 内后续命中不因 invulnerableTime/lastHurt 被挡
         if (!TimeStopState.isActive() && TimeStopState.getInvulnWindowTicks() <= 0) {
             return;
         }

@@ -162,8 +162,9 @@ public final class TimeStopState {
         // 其命中依赖 deltaMovement 射线长度，冻结清零速度会导致射线零长度而无法造成伤害
         if (TimeStopCompat.isSlashBladeProjectile(entity)) {
             UUID owner = TimeStopCompat.getProjectileOwnerUuid(entity);
-            if (owner != null && (owner.equals(stopperUUID)
-                    || (ftbTeamMembers != null && ftbTeamMembers.contains(owner)))) {
+            if (owner == null || owner.equals(stopperUUID)
+                    || (ftbTeamMembers != null && ftbTeamMembers.contains(owner))) {
+                // owner 解析失败也豁免（防御性），避免冻结干扰其自身攻击逻辑
                 return false;
             }
         }
